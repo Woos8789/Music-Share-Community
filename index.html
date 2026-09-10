@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUSIC SHARE // CHAT WALL</title>
+    <style>
+        body {
+            background-color: #0d0e15;
+            color: #00ffcc;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        /* 도트 캐릭터 & 타이틀 헤더 */
+        .header-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .pixel-character {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 10px auto;
+            animation: pixelBounce 0.8s infinite alternate ease-in-out;
+            image-rendering: pixelated;
+        }
+        .music-note {
+            display: inline-block;
+            color: #ff0055;
+            font-size: 18px;
+            animation: noteFloat 1.2s infinite ease-in-out alternate;
+        }
+        @keyframes pixelBounce {
+            0% { transform: translateY(0px) scaleY(1); }
+            100% { transform: translateY(-8px) scaleY(0.95); }
+        }
+        @keyframes noteFloat {
+            0% { transform: translateY(0) rotate(-10deg); opacity: 0.4; }
+            100% { transform: translateY(-12px) rotate(10deg); opacity: 1; }
+        }
+
+        h1 {
+            color: #ff0055;
+            text-shadow: 2px 2px #00ffcc;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .box {
+            border: 2px solid #00ffcc;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #161824;
+            box-shadow: 4px 4px 0px #ff0055;
+        }
+        input, button {
+            background-color: #0d0e15;
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+            padding: 8px;
+            margin-bottom: 5px;
+            font-family: inherit;
+        }
+        button {
+            cursor: pointer;
+            background-color: #ff0055;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+        }
+        button:hover { background-color: #00ffcc; color: #000; }
+        .tab-btn { background-color: #161824; color: #aaa; border: 1px solid #00ffcc; margin-right: 5px; }
+        .tab-btn.active { background-color: #00ffcc; color: #000; }
+
+        .main-container { display: flex; gap: 15px; }
+        .chat-section { flex: 2.5; }
+        .sidebar-section { flex: 1; }
+
+        @media (max-width: 700px) { .main-container { flex-direction: column; } }
+
+        #chat-log {
+            height: 320px;
+            overflow-y: scroll;
+            border: 1px dashed #00ffcc;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #000;
+        }
+        .msg-box {
+            margin-bottom: 12px;
+            border-bottom: 1px dotted #222;
+            padding-bottom: 8px;
+        }
+        .msg-header { font-weight: bold; }
+        .hype-btn {
+            background-color: #161824;
+            color: #ff0055;
+            border: 1px solid #ff0055;
+            padding: 2px 8px;
+            font-size: 11px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+        .hype-btn:hover { background-color: #ff0055; color: #fff; }
+
+        #user-list { list-style: none; padding: 0; margin: 0; }
+        #user-list li { padding: 6px; border-bottom: 1px dashed #333; font-size: 13px; }
+        .status-dot { color: #00ffcc; margin-right: 5px; }
+        .user-pts { color: #ff0055; font-size: 12px; float: right; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <div class="pixel-character">
+            <svg viewBox="0 0 16 16" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="1" width="3" height="3" fill="#ff0055"/>
+                <rect x="11" y="1" width="3" height="3" fill="#ff0055"/>
+                <rect x="3" y="3" width="10" height="9" fill="#161824" stroke="#00ffcc" stroke-width="1"/>
+                <rect x="5" y="6" width="2" height="2" fill="#00ffcc"/>
+                <rect x="9" y="6" width="2" height="2" fill="#00ffcc"/>
+                <rect x="7" y="9" width="2" height="1" fill="#ff0055"/>
+                <rect x="1" y="5" width="2" height="5" fill="#ff0055"/>
+                <rect x="13" y="5" width="2" height="5" fill="#ff0055"/>
+                <rect x="3" y="2" width="10" height="1" fill="#ff0055"/>
+            </svg>
+        </div>
+        <h1>
+            <span class="music-note">🎵</span> 
+            MUSIC SHARE // CHAT WALL 
+            <span class="music-note" style="animation-delay: 0.4s;">🎶</span>
+        </h1>
+    </div>
+
+    <div class="box">
+        <div style="margin-bottom: 10px;">
+            <button class="tab-btn active" id="btn-tab-login" onclick="switchTab('login')">로그인</button>
+            <button class="tab-btn" id="btn-tab-signup" onclick="switchTab('signup')">회원가입</button>
+        </div>
+
+        <div id="form-login">
+            <input type="email" id="login-email" placeholder="이메일" style="width: 70%;">
+            <input type="password" id="login-password" placeholder="비밀번호" style="width: 70%;"><br>
+            <button onclick="loginUser()">로그인 접속</button>
+        </div>
+
+        <div id="form-signup" style="display: none;">
+            <input type="text" id="signup-username" placeholder="닉네임" style="width: 70%;"><br>
+            <input type="email" id="signup-email" placeholder="이메일" style="width: 70%;"><br>
+            <input type="password" id="signup-password" placeholder="비밀번호" style="width: 70%;"><br>
+            <button onclick="registerUser()">회원가입 하기</button>
+        </div>
+
+        <p id="user-status" style="color:#aaa; font-size: 12px; margin-top: 10px;"></p>
+    </div>
+
+    <div class="main-container">
+        <div class="box chat-section">
+            <h3>REALTIME CHAT WALL</h3>
+            <div id="chat-log"></div>
+            <input type="text" id="chat-input" placeholder="메시지 또는 음악 링크 입력..." style="width: 68%;" onkeyup="handleKeyPress(event)" disabled>
+            <button onclick="sendMessage()" id="send-btn" disabled>전송</button>
+        </div>
+
+        <div class="box sidebar-section">
+            <h3>ONLINE LEADERBOARD</h3>
+            <ul id="user-list">
+                <li style="color: #666;">접속 중인 유저 없음</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = null;
+        let ws = null;
+        const roomId = 1;
+
+        function switchTab(type) {
+            document.getElementById('form-login').style.display = type === 'login' ? 'block' : 'none';
+            document.getElementById('form-signup').style.display = type === 'signup' ? 'block' : 'none';
+            document.getElementById('btn-tab-login').classList.toggle('active', type === 'login');
+            document.getElementById('btn-tab-signup').classList.toggle('active', type === 'signup');
+        }
+
+        async function loginUser() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            const res = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                currentUserId = data.id;
+                document.getElementById('user-status').innerText = `접속 완료: ${data.username} (ID: ${currentUserId})`;
+                connectWebSocket();
+            } else {
+                alert("로그인 실패: " + data.detail);
+            }
+        }
+
+        async function registerUser() {
+            const username = document.getElementById('signup-username').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+
+            const res = await fetch('/users/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password, music_genre_tags: "Indie Rock" })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert("회원가입 성공! 로그인해 주세요.");
+                switchTab('login');
+                document.getElementById('login-email').value = email;
+            } else {
+                alert("가입 실패: " + data.detail);
+            }
+        }
+
+        function connectWebSocket() {
+            const host = window.location.host;
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${wsProtocol}//${host}/ws/chat/${roomId}/${currentUserId}`);
+
+            ws.onopen = () => {
+                appendSystemLog(">>> 시스템 소켓에 연결되었습니다.");
+                document.getElementById('chat-input').disabled = false;
+                document.getElementById('send-btn').disabled = false;
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'user_list') {
+                        renderUserList(data.users);
+                        return;
+                    }
+                    if (data.type === 'system') {
+                        appendSystemLog(data.content);
+                        return;
+                    }
+                    if (data.type === 'chat') {
+                        appendChatMessage(data);
+                        return;
+                    }
+                    if (data.type === 'hype_update') {
+                        const btn = document.getElementById(`hype-btn-${data.message_id}`);
+                        if (btn) btn.innerText = `🔥 Hype (${data.hypes_count})`;
+                        return;
+                    }
+                } catch (e) {
+                    appendSystemLog(event.data);
+                }
+            };
+
+            ws.onclose = () => appendSystemLog(">>> 연결이 종료되었습니다.");
+        }
+
+        function sendHype(messageId) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'hype', message_id: messageId }));
+            }
+        }
+
+        function renderUserList(users) {
+            const listEl = document.getElementById('user-list');
+            listEl.innerHTML = '';
+
+            users.sort((a, b) => (b.points || 0) - (a.points || 0));
+
+            users.forEach((u, idx) => {
+                const li = document.createElement('li');
+                const badge = idx === 0 && u.points > 0 ? '🎧 ' : '';
+                li.innerHTML = `
+                    <span class="status-dot">●</span>
+                    <b>${badge}${u.username}</b>
+                    <span class="user-pts">${u.points || 0} pts</span>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            if (input.value && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(input.value);
+                input.value = '';
+            }
+        }
+
+        function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
+
+        function appendSystemLog(msg) {
+            const log = document.getElementById('chat-log');
+            const div = document.createElement('div');
+            div.style.color = '#888';
+            div.style.fontSize = '12px';
+            div.style.marginBottom = '6px';
+            div.innerText = msg;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function appendChatMessage(data) {
+            const log = document.getElementById('chat-log');
+            const div = document.createElement('div');
+            div.className = 'msg-box';
+
+            const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const spotifyRegex = /https:\/\/open\.spotify\.com\/(track|playlist|album)\/([a-zA-Z0-9]+)/;
+
+            const ytMatch = data.content.match(ytRegex);
+            const spotifyMatch = data.content.match(spotifyRegex);
+
+            let mediaHtml = '';
+            if (ytMatch) {
+                mediaHtml = `<iframe width="100%" height="160" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allowfullscreen style="border: 1px solid #00ffcc; margin-top:5px; border-radius: 4px;"></iframe>`;
+            } else if (spotifyMatch) {
+                mediaHtml = `<iframe src="https://open.spotify.com/embed/${spotifyMatch[1]}/${spotifyMatch[2]}" width="100%" height="80" frameborder="0" allow="encrypted-media" style="border: 1px solid #00ffcc; margin-top:5px; border-radius: 4px;"></iframe>`;
+            }
+
+            div.innerHTML = `
+                <div class="msg-header">${data.username}</div>
+                <div>${data.content}</div>
+                ${mediaHtml}
+                <button id="hype-btn-${data.message_id}" class="hype-btn" onclick="sendHype(${data.message_id})">🔥 Hype (${data.hypes_count || 0})</button>
+            `;
+
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+    </script>
+</body>
+</html>
